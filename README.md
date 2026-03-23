@@ -1,5 +1,7 @@
 # base-typed-int
 
+`base_typed_int` is a small Python library for building domain-specific integer types that remain real `int` objects at runtime.
+
 Strict typed integer base class with exact runtime subtype preservation and optional Pydantic v2 support.
 
 ## Why
