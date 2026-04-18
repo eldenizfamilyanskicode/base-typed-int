@@ -53,10 +53,8 @@ pip install "base-typed-int[dev]"
 ```python
 from base_typed_int import BaseTypedInt
 
-
 class UserAge(BaseTypedInt):
     pass
-
 
 class Account:
     def __init__(self, user_age: UserAge) -> None:
@@ -82,7 +80,6 @@ The constructor is typed as accepting `int`, while still keeping a runtime valid
 ```python
 from base_typed_int import BaseTypedInt
 
-
 class RetryCount(BaseTypedInt):
     pass
 
@@ -94,8 +91,13 @@ value_from_typed_int: RetryCount = RetryCount(RetryCount(3))
 Invalid input raises `BaseTypedIntInvalidInputValueError`.
 
 ```python
-from base_typed_int import BaseTypedIntInvalidInputValueError
+from base_typed_int import (
+    BaseTypedInt,
+    BaseTypedIntInvalidInputValueError,
+)
 
+class RetryCount(BaseTypedInt):
+    pass
 
 try:
     RetryCount("3")
@@ -127,6 +129,8 @@ For that reason, `BaseTypedInt` explicitly rejects `bool` even though `bool` is 
 Normal arithmetic keeps standard Python `int` semantics.
 
 ```python
+from base_typed_int import BaseTypedInt
+
 class UserAge(BaseTypedInt):
     pass
 
@@ -154,6 +158,8 @@ The typed subtype marks the boundary value itself, while regular numeric operati
 The exact subtype instance is preserved when stored and retrieved.
 
 ```python
+from base_typed_int import BaseTypedInt
+
 class UserAge(BaseTypedInt):
     pass
 
@@ -191,7 +197,6 @@ import pickle
 
 from base_typed_int import BaseTypedInt
 
-
 class RetryCount(BaseTypedInt):
     pass
 
@@ -212,6 +217,7 @@ Since `BaseTypedInt` inherits from `int`, standard JSON serialization naturally 
 ```python
 import json
 
+from base_typed_int import BaseTypedInt
 
 class RetryCount(BaseTypedInt):
     pass
@@ -248,7 +254,6 @@ Serialization rules:
 from pydantic import BaseModel
 
 from base_typed_int import BaseTypedInt
-
 
 class RetryCount(BaseTypedInt):
     pass
