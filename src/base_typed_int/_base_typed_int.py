@@ -30,7 +30,7 @@ class BaseTypedInt(int):
 
     def __new__(
         cls: type[BaseTypedIntType],
-        value: Any,
+        value: int,
     ) -> BaseTypedIntType:
         if isinstance(value, bool):
             raise BaseTypedIntInvalidInputValueError(
@@ -39,7 +39,7 @@ class BaseTypedInt(int):
                 f"Got: {type(value).__name__}."
             )
 
-        if not isinstance(value, int):
+        if not isinstance(value, int):  # pyright: ignore[reportUnnecessaryIsInstance] runtime boundary guard
             raise BaseTypedIntInvalidInputValueError(
                 "BaseTypedInt must be initialized only with int. "
                 f"Got: {type(value).__name__}."

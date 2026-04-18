@@ -35,8 +35,13 @@ def main() -> None:
     print_value_state("restored_retry_count", restored_retry_count)
 
     print(f"plain value preserved            : {restored_retry_count == 7}")
-    print(f"exact subtype preserved          : {type(restored_retry_count) is RetryCount}")
-    print(f"isinstance(restored_retry_count, int): {isinstance(restored_retry_count, int)}")
+    print(
+        f"exact subtype preserved          : {type(restored_retry_count) is RetryCount}"
+    )
+    print(
+        f"isinstance(restored_retry_count, int):"
+        f" {isinstance(restored_retry_count, int)}"
+    )
     print(
         f"isinstance(restored_retry_count, RetryCount): "
         f"{isinstance(restored_retry_count, RetryCount)}"

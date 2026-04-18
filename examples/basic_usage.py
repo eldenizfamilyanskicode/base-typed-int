@@ -84,13 +84,10 @@ def demonstrate_container_and_attribute_behavior() -> None:
         f"class attribute keeps same object: "
         f"{retrieved_from_attribute is source_user_age}"
     )
-    print(
-        f"dict key object is same object   : {stored_key_object is source_user_age}"
-    )
+    print(f"dict key object is same object   : {stored_key_object is source_user_age}")
     print(f"typed key lookup works           : {retrieved_by_typed_key == 'present'}")
     print(
-        f"plain int key lookup works       : "
-        f"{retrieved_by_plain_int_key == 'present'}"
+        f"plain int key lookup works       : {retrieved_by_plain_int_key == 'present'}"
     )
     print(f"stored key exact subtype kept    : {type(stored_key_object) is UserAge}")
 

@@ -77,7 +77,7 @@ assert account.user_age is user_age
 
 ## Constructor behavior
 
-`BaseTypedInt` accepts int values and rejects bool explicitly.
+The constructor is typed as accepting `int`, while still keeping a runtime validation guard for invalid non-integer inputs crossing dynamic boundaries.
 
 ```python
 from base_typed_int import BaseTypedInt

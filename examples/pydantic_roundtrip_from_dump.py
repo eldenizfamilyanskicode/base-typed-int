@@ -50,8 +50,12 @@ def main() -> None:
 
     print_section("1. source model runtime values")
 
-    print_value_state("source_model.primary_retry_count", source_model.primary_retry_count)
-    print_value_state("source_model.backup_retry_count", source_model.backup_retry_count)
+    print_value_state(
+        "source_model.primary_retry_count", source_model.primary_retry_count
+    )
+    print_value_state(
+        "source_model.backup_retry_count", source_model.backup_retry_count
+    )
 
     print_section("2. exported payload loses subtype")
 

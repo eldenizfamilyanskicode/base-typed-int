@@ -46,13 +46,21 @@ def main() -> None:
     primary_retry_count_from_dump: object = dumped_python["primary_retry_count"]
     backup_retry_count_from_dump: object = dumped_python["backup_retry_count"]
 
-    primary_retry_count_from_json_payload: object = loaded_from_json["primary_retry_count"]
-    backup_retry_count_from_json_payload: object = loaded_from_json["backup_retry_count"]
+    primary_retry_count_from_json_payload: object = loaded_from_json[
+        "primary_retry_count"
+    ]
+    backup_retry_count_from_json_payload: object = loaded_from_json[
+        "backup_retry_count"
+    ]
 
     print_section("1. runtime values inside pydantic model")
 
-    print_value_state("metrics_model.primary_retry_count", metrics_model.primary_retry_count)
-    print_value_state("metrics_model.backup_retry_count", metrics_model.backup_retry_count)
+    print_value_state(
+        "metrics_model.primary_retry_count", metrics_model.primary_retry_count
+    )
+    print_value_state(
+        "metrics_model.backup_retry_count", metrics_model.backup_retry_count
+    )
 
     print(
         f"primary_retry_count exact subtype kept: "
