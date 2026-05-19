@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "base-typed-int"
-version = "0.1.1"
+version = "0.1.2"
 description = "Strict typed integer base class with exact runtime subtype preservation and optional Pydantic v2 support."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -50,6 +50,7 @@ typecheck = [
     "mypy>=1.10",
     "pyright>=1.1",
     "pydantic>=2.6,<3",
+    "typing-extensions>=4.10",
 ]
 build = [
     "build>=1.2",
@@ -64,6 +65,7 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.5",
     "pydantic>=2.6,<3",
+    "typing-extensions>=4.10",
 ]
 
 [project.urls]
@@ -104,7 +106,7 @@ fail_under = 100
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-src = ["src", "tests"]
+src = ["src", "tests", "type_tests", "examples"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
@@ -128,12 +130,12 @@ strict_equality = true
 no_implicit_optional = true
 allow_redefinition = false
 show_error_codes = true
-packages = ["base_typed_int"]
+files = ["src", "tests", "type_tests", "examples"]
 
 [tool.pyright]
 pythonVersion = "3.10"
 typeCheckingMode = "strict"
-include = ["src", "tests"]
+include = ["src", "tests", "type_tests", "examples"]
 exclude = [
     "**/.*",
     "**/__pycache__/**",

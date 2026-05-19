@@ -1,0 +1,20 @@
+{
+  "typeCheckingMode": "strict",
+  "venvPath": ".",
+  "venv": ".venv",
+  "include": [
+    "src",
+    "tests",
+    "type_tests",
+    "examples"
+  ],
+  "exclude": [
+    ".venv",
+    "venv",
+    "node_modules",
+    "**/__pycache__",
+    "dist",
+    "build",
+    ".dev_tools"
+  ]
+}

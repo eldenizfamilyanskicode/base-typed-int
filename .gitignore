@@ -15,6 +15,7 @@ dist/
 *.egg-info/
 *.whl
 *.tar.gz
+.eggs/
 
 # Testing / coverage
 .pytest_cache/
@@ -39,3 +40,4 @@ htmlcov/
 
 # OS
 .DS_Store
+

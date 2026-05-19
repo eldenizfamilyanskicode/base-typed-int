@@ -53,25 +53,35 @@ def demonstrate_container_and_attribute_behavior() -> None:
     user_age_by_field_name: dict[str, UserAge] = {
         "user_age": source_user_age,
     }
-    values_by_user_age: dict[int, str] = {
+
+    values_by_exact_user_age: dict[UserAge, str] = {
         source_user_age: "present",
     }
+    values_by_plain_int: dict[int, str] = {
+        source_user_age: "present",
+    }
+
     account: Account = Account(user_age=source_user_age)
 
     retrieved_from_list: UserAge = user_age_list[0]
     retrieved_from_dict_value: UserAge = user_age_by_field_name["user_age"]
     retrieved_from_attribute: UserAge = account.user_age
-    retrieved_by_typed_key: str = values_by_user_age[source_user_age]
-    retrieved_by_plain_int_key: str = values_by_user_age[18]
 
-    stored_keys: tuple[int, ...] = tuple(values_by_user_age.keys())
-    stored_key_object: int = stored_keys[0]
+    retrieved_by_typed_key: str = values_by_exact_user_age[source_user_age]
+    retrieved_by_plain_int_key: str = values_by_plain_int[18]
+
+    exact_stored_keys: tuple[UserAge, ...] = tuple(values_by_exact_user_age.keys())
+    exact_stored_key_object: UserAge = exact_stored_keys[0]
+
+    plain_int_stored_keys: tuple[int, ...] = tuple(values_by_plain_int.keys())
+    plain_int_stored_key_object: int = plain_int_stored_keys[0]
 
     print_value_state("source_user_age", source_user_age)
     print_value_state("retrieved_from_list", retrieved_from_list)
     print_value_state("retrieved_from_dict_value", retrieved_from_dict_value)
     print_value_state("retrieved_from_attribute", retrieved_from_attribute)
-    print_value_state("stored_key_object", stored_key_object)
+    print_value_state("exact_stored_key_object", exact_stored_key_object)
+    print_value_state("plain_int_stored_key_object", plain_int_stored_key_object)
 
     print(
         f"list keeps same object           : {retrieved_from_list is source_user_age}"
@@ -84,12 +94,25 @@ def demonstrate_container_and_attribute_behavior() -> None:
         f"class attribute keeps same object: "
         f"{retrieved_from_attribute is source_user_age}"
     )
-    print(f"dict key object is same object   : {stored_key_object is source_user_age}")
+    print(
+        f"exact dict key is same object    : "
+        f"{exact_stored_key_object is source_user_age}"
+    )
+    print(
+        f"int dict key is same object      : "
+        f"{plain_int_stored_key_object is source_user_age}"
+    )
     print(f"typed key lookup works           : {retrieved_by_typed_key == 'present'}")
     print(
         f"plain int key lookup works       : {retrieved_by_plain_int_key == 'present'}"
     )
-    print(f"stored key exact subtype kept    : {type(stored_key_object) is UserAge}")
+    print(
+        f"exact key runtime subtype kept   : {type(exact_stored_key_object) is UserAge}"
+    )
+    print(
+        f"int key runtime subtype kept     : "
+        f"{type(plain_int_stored_key_object) is UserAge}"
+    )
 
 
 def demonstrate_normal_integer_operations() -> None:
