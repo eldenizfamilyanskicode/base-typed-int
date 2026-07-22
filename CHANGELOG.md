@@ -9,8 +9,8 @@ All notable changes to this project are documented in this file.
 - `BaseConstrainedTypedInt`, a real callable branded integer class with
   declarative `gt`, `ge`, `lt`, `le`, and `multiple_of` constraints.
 - Constraint configuration and violation exceptions.
-- Constraint-aware inheritance, including monotonic range narrowing and least
-  common multiple composition for multiple inheritance.
+- Constraint-aware single-parent inheritance, including monotonic range
+  narrowing and explicit rejection of multiple constrained integer parents.
 - Strict Pydantic v2 validation, plain integer serialization, and JSON Schema
   generation for constrained integer types.
 - Runtime, Pydantic, pickle, public API, and static typing coverage for

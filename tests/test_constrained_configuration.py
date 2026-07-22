@@ -163,14 +163,6 @@ class SealedChildConstrainedInt(SealedParentConstrainedInt):
     pass
 
 
-class MinimumConstrainedInt(BaseConstrainedTypedInt):
-    ge = 2
-
-
-class MaximumConstrainedInt(BaseConstrainedTypedInt):
-    le = 10
-
-
 class EvenConstrainedInt(BaseConstrainedTypedInt):
     multiple_of = 2
 
@@ -179,13 +171,8 @@ class DivisibleByThreeConstrainedInt(BaseConstrainedTypedInt):
     multiple_of = 3
 
 
-class MultiplyInheritedConstrainedInt(
-    MinimumConstrainedInt,
-    MaximumConstrainedInt,
-    EvenConstrainedInt,
-    DivisibleByThreeConstrainedInt,
-):
-    pass
+class DivisibleBySixConstrainedInt(BaseConstrainedTypedInt):
+    multiple_of = 6
 
 
 def test_child_can_tighten_inherited_constraints() -> None:
@@ -270,20 +257,31 @@ def test_changed_parent_constraint_is_rejected_when_child_is_used() -> None:
     )
 
 
-def test_multiple_inheritance_combines_every_parent_constraint() -> None:
-    constrained_value = MultiplyInheritedConstrainedInt(6)
-
-    assert constrained_value == 6
-    assert MultiplyInheritedConstrainedInt.ge == 2
-    assert MultiplyInheritedConstrainedInt.le == 10
-    assert MultiplyInheritedConstrainedInt.multiple_of == 6
-
-    with pytest.raises(BaseTypedIntConstraintConfigurationError):
+def test_multiple_constrained_integer_inheritance_is_rejected() -> None:
+    with pytest.raises(BaseTypedIntConstraintConfigurationError) as caught_error:
         type(
-            "WeakenedSecondParent",
-            (MinimumConstrainedInt, MaximumConstrainedInt),
-            {"le": 11},
+            "MultiplyInheritedConstrainedInt",
+            (EvenConstrainedInt, DivisibleByThreeConstrainedInt),
+            {},
         )
+
+    assert str(caught_error.value) == (
+        "MultiplyInheritedConstrainedInt cannot inherit from multiple constrained "
+        "integer types: EvenConstrainedInt, DivisibleByThreeConstrainedInt. "
+        "Declare MultiplyInheritedConstrainedInt directly from "
+        "BaseConstrainedTypedInt with its own constraints."
+    )
+
+
+def test_combined_constraints_are_declared_as_an_independent_type() -> None:
+    constrained_value = DivisibleBySixConstrainedInt(6)
+
+    assert type(constrained_value) is DivisibleBySixConstrainedInt
+    assert not issubclass(DivisibleBySixConstrainedInt, EvenConstrainedInt)
+    assert not issubclass(
+        DivisibleBySixConstrainedInt,
+        DivisibleByThreeConstrainedInt,
+    )
 
 
 @pytest.mark.parametrize(

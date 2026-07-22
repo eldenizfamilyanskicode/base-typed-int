@@ -4,7 +4,10 @@ from typing import Any, ClassVar, TypeVar
 
 import base_typed_int._base_constrained_typed_int._constraints as _constraints
 from base_typed_int._base_typed_int import BaseTypedInt
-from base_typed_int._exceptions import BaseTypedIntInvariantViolationError
+from base_typed_int._exceptions import (
+    BaseTypedIntConstraintConfigurationError,
+    BaseTypedIntInvariantViolationError,
+)
 from base_typed_int._pydantic_support import build_typed_int_pydantic_core_schema
 
 BaseConstrainedTypedIntType = TypeVar(
@@ -48,6 +51,28 @@ def _stored_constraint_configuration(
     return configuration_value
 
 
+def _single_constrained_parent_type(
+    typed_int_type: type[BaseConstrainedTypedInt],
+) -> type[BaseConstrainedTypedInt]:
+    constrained_parent_types: list[type[BaseConstrainedTypedInt]] = []
+    for parent_type in typed_int_type.__bases__:
+        if issubclass(parent_type, BaseConstrainedTypedInt):
+            constrained_parent_types.append(parent_type)
+
+    if len(constrained_parent_types) > 1:
+        parent_type_names = ", ".join(
+            parent_type.__name__ for parent_type in constrained_parent_types
+        )
+        raise BaseTypedIntConstraintConfigurationError(
+            f"{typed_int_type.__name__} cannot inherit from multiple constrained "
+            f"integer types: {parent_type_names}. Declare "
+            f"{typed_int_type.__name__} directly from BaseConstrainedTypedInt "
+            "with its own constraints."
+        )
+
+    return constrained_parent_types[0]
+
+
 class BaseConstrainedTypedInt(BaseTypedInt):
     """
     Callable domain-typed integer with declarative value constraints.
@@ -56,7 +81,8 @@ class BaseConstrainedTypedInt(BaseTypedInt):
     as class attributes. Construction accepts only ``int`` except ``bool``,
     validates every declared constraint, and returns the exact subclass.
     Constraint declarations cannot be changed after class creation and may only
-    become stricter in subclasses.
+    become stricter in subclasses. A subclass may have only one constrained
+    integer parent; combined concepts must declare their own constraints.
 
     The class performs no coercion and does not require Pydantic for direct use.
     """
@@ -74,17 +100,16 @@ class BaseConstrainedTypedInt(BaseTypedInt):
     )
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
+        constrained_parent_type = _single_constrained_parent_type(cls)
         super().__init_subclass__(**kwargs)
 
-        parent_configurations = tuple(
-            _effective_constraint_configuration(parent_type)
-            for parent_type in cls.__mro__[1:]
-            if issubclass(parent_type, BaseConstrainedTypedInt)
+        parent_configuration = _effective_constraint_configuration(
+            constrained_parent_type
         )
         configuration = _constraints.build_effective_constraint_configuration(
             class_name=cls.__name__,
             class_namespace=vars(cls),
-            parent_configurations=parent_configurations,
+            parent_configuration=parent_configuration,
         )
 
         type.__setattr__(cls, "gt", configuration.gt)

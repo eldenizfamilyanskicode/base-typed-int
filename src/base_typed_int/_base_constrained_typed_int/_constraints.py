@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
-from math import lcm
 
 from base_typed_int._exceptions import (
     BaseTypedIntConstraintConfigurationError,
@@ -32,28 +31,27 @@ def build_effective_constraint_configuration(
     *,
     class_name: str,
     class_namespace: Mapping[str, object],
-    parent_configurations: Iterable[ConstraintConfiguration],
+    parent_configuration: ConstraintConfiguration,
 ) -> ConstraintConfiguration:
-    parent_configuration_values = tuple(parent_configurations)
     gt_value = class_namespace.get(
         "gt",
-        _inherited_greatest_value(parent_configuration_values, "gt"),
+        parent_configuration.gt,
     )
     ge_value = class_namespace.get(
         "ge",
-        _inherited_greatest_value(parent_configuration_values, "ge"),
+        parent_configuration.ge,
     )
     lt_value = class_namespace.get(
         "lt",
-        _inherited_least_value(parent_configuration_values, "lt"),
+        parent_configuration.lt,
     )
     le_value = class_namespace.get(
         "le",
-        _inherited_least_value(parent_configuration_values, "le"),
+        parent_configuration.le,
     )
     multiple_of_value = class_namespace.get(
         "multiple_of",
-        _inherited_multiple_of(parent_configuration_values),
+        parent_configuration.multiple_of,
     )
 
     configuration = _build_constraint_configuration(
@@ -67,7 +65,7 @@ def build_effective_constraint_configuration(
     validate_inherited_constraints(
         class_name=class_name,
         configuration=configuration,
-        parent_configurations=parent_configuration_values,
+        parent_configuration=parent_configuration,
     )
     return configuration
 
@@ -111,44 +109,6 @@ def _build_constraint_configuration(
     return configuration
 
 
-def _inherited_greatest_value(
-    parent_configurations: Iterable[ConstraintConfiguration],
-    constraint_name: str,
-) -> int | None:
-    inherited_values = tuple(
-        value
-        for configuration in parent_configurations
-        if (value := getattr(configuration, constraint_name)) is not None
-    )
-    return max(inherited_values, default=None)
-
-
-def _inherited_least_value(
-    parent_configurations: Iterable[ConstraintConfiguration],
-    constraint_name: str,
-) -> int | None:
-    inherited_values = tuple(
-        value
-        for configuration in parent_configurations
-        if (value := getattr(configuration, constraint_name)) is not None
-    )
-    return min(inherited_values, default=None)
-
-
-def _inherited_multiple_of(
-    parent_configurations: Iterable[ConstraintConfiguration],
-) -> int | None:
-    inherited_values = tuple(
-        configuration.multiple_of
-        for configuration in parent_configurations
-        if configuration.multiple_of is not None
-    )
-    if not inherited_values:
-        return None
-
-    return lcm(*inherited_values)
-
-
 def validate_constraint_declaration_unchanged(
     *,
     class_name: str,
@@ -180,40 +140,37 @@ def validate_inherited_constraints(
     *,
     class_name: str,
     configuration: ConstraintConfiguration,
-    parent_configurations: Iterable[ConstraintConfiguration],
+    parent_configuration: ConstraintConfiguration,
 ) -> None:
     minimum_valid_value = _minimum_valid_value(configuration)
     maximum_valid_value = _maximum_valid_value(configuration)
 
-    for parent_configuration in parent_configurations:
-        parent_minimum_valid_value = _minimum_valid_value(parent_configuration)
-        if parent_minimum_valid_value is not None and (
-            minimum_valid_value is None
-            or minimum_valid_value < parent_minimum_valid_value
-        ):
-            raise BaseTypedIntConstraintConfigurationError(
-                f"{class_name} lower bound cannot weaken inherited lower bound "
-                f"{parent_minimum_valid_value}."
-            )
+    parent_minimum_valid_value = _minimum_valid_value(parent_configuration)
+    if parent_minimum_valid_value is not None and (
+        minimum_valid_value is None or minimum_valid_value < parent_minimum_valid_value
+    ):
+        raise BaseTypedIntConstraintConfigurationError(
+            f"{class_name} lower bound cannot weaken inherited lower bound "
+            f"{parent_minimum_valid_value}."
+        )
 
-        parent_maximum_valid_value = _maximum_valid_value(parent_configuration)
-        if parent_maximum_valid_value is not None and (
-            maximum_valid_value is None
-            or maximum_valid_value > parent_maximum_valid_value
-        ):
-            raise BaseTypedIntConstraintConfigurationError(
-                f"{class_name} upper bound cannot weaken inherited upper bound "
-                f"{parent_maximum_valid_value}."
-            )
+    parent_maximum_valid_value = _maximum_valid_value(parent_configuration)
+    if parent_maximum_valid_value is not None and (
+        maximum_valid_value is None or maximum_valid_value > parent_maximum_valid_value
+    ):
+        raise BaseTypedIntConstraintConfigurationError(
+            f"{class_name} upper bound cannot weaken inherited upper bound "
+            f"{parent_maximum_valid_value}."
+        )
 
-        if parent_configuration.multiple_of is not None and (
-            configuration.multiple_of is None
-            or configuration.multiple_of % parent_configuration.multiple_of != 0
-        ):
-            raise BaseTypedIntConstraintConfigurationError(
-                f"{class_name}.multiple_of cannot weaken inherited multiple_of="
-                f"{parent_configuration.multiple_of}."
-            )
+    if parent_configuration.multiple_of is not None and (
+        configuration.multiple_of is None
+        or configuration.multiple_of % parent_configuration.multiple_of != 0
+    ):
+        raise BaseTypedIntConstraintConfigurationError(
+            f"{class_name}.multiple_of cannot weaken inherited multiple_of="
+            f"{parent_configuration.multiple_of}."
+        )
 
 
 def validate_value_constraints(

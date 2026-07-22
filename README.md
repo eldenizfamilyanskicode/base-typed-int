@@ -131,8 +131,30 @@ metaclassed bases.
 
 A constrained subtype may only narrow its inherited domain: lower bounds may
 rise, upper bounds may fall, and `multiple_of` may become a multiple of the
-inherited value. Multiple inheritance combines compatible bounds and uses the
-least common multiple of inherited `multiple_of` values.
+inherited value. A class may inherit from only one constrained integer type.
+Multiple constrained parents are rejected because composing their constraints
+would silently assign several domain meanings to a different value type.
+
+Declare a combined invariant as an independent type instead:
+
+```python
+class EvenInt(BaseConstrainedTypedInt):
+    multiple_of = 2
+
+
+class DivisibleByThreeInt(BaseConstrainedTypedInt):
+    multiple_of = 3
+
+
+# Rejected: this gives one value type two domain parents.
+class DivisibleBySixInt(EvenInt, DivisibleByThreeInt):
+    pass
+
+
+# Declare the new value type and its own invariant explicitly.
+class DivisibleBySixInt(BaseConstrainedTypedInt):
+    multiple_of = 6
+```
 
 ### Canonical declaration for coding agents
 
