@@ -59,7 +59,8 @@ def _single_constrained_parent_type(
         if issubclass(parent_type, BaseConstrainedTypedInt):
             constrained_parent_types.append(parent_type)
 
-    if len(constrained_parent_types) > 1:
+    # CPython 3.10 and 3.11 reject these bases before __init_subclass__.
+    if len(constrained_parent_types) > 1:  # pragma: no cover
         parent_type_names = ", ".join(
             parent_type.__name__ for parent_type in constrained_parent_types
         )

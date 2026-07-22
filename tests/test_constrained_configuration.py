@@ -258,19 +258,24 @@ def test_changed_parent_constraint_is_rejected_when_child_is_used() -> None:
 
 
 def test_multiple_constrained_integer_inheritance_is_rejected() -> None:
-    with pytest.raises(BaseTypedIntConstraintConfigurationError) as caught_error:
+    try:
         type(
             "MultiplyInheritedConstrainedInt",
             (EvenConstrainedInt, DivisibleByThreeConstrainedInt),
             {},
         )
-
-    assert str(caught_error.value) == (
-        "MultiplyInheritedConstrainedInt cannot inherit from multiple constrained "
-        "integer types: EvenConstrainedInt, DivisibleByThreeConstrainedInt. "
-        "Declare MultiplyInheritedConstrainedInt directly from "
-        "BaseConstrainedTypedInt with its own constraints."
-    )
+    except BaseTypedIntConstraintConfigurationError as configuration_error:
+        assert str(configuration_error) == (
+            "MultiplyInheritedConstrainedInt cannot inherit from multiple "
+            "constrained integer types: EvenConstrainedInt, "
+            "DivisibleByThreeConstrainedInt. Declare "
+            "MultiplyInheritedConstrainedInt directly from "
+            "BaseConstrainedTypedInt with its own constraints."
+        )
+    except TypeError as layout_error:
+        assert str(layout_error) == "multiple bases have instance lay-out conflict"
+    else:
+        pytest.fail("Multiple constrained integer inheritance was accepted.")
 
 
 def test_combined_constraints_are_declared_as_an_independent_type() -> None:
