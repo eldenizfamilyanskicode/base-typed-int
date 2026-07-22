@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any, TypeVar
 
-from ._exceptions import (
-    BaseTypedIntInvalidInputValueError,
-    BaseTypedIntInvariantViolationError,
+from base_typed_int._exceptions import BaseTypedIntInvalidInputValueError
+from base_typed_int._pydantic_support import (
+    build_typed_int_pydantic_core_schema,
 )
 
 BaseTypedIntType = TypeVar(
@@ -45,7 +45,7 @@ class BaseTypedInt(int):
                 f"Got: {type(value).__name__}."
             )
 
-        return int.__new__(cls, value)
+        return int.__new__(cls, int.__int__(value))
 
     @classmethod
     def __get_pydantic_core_schema__(
@@ -67,34 +67,15 @@ class BaseTypedInt(int):
         del source_type
         del handler
 
-        try:
-            from pydantic_core import (  # pyright: ignore[reportMissingImports]
-                core_schema,
-            )
-        except ImportError as import_error:
-            raise BaseTypedIntInvariantViolationError(
-                "pydantic-core is required to build BaseTypedInt schema."
-            ) from import_error
-
-        def serialize_to_plain_int(value: BaseTypedInt) -> int:
-            return int(value)
-
-        return core_schema.no_info_after_validator_function(
-            cls,
-            core_schema.int_schema(strict=True),
-            serialization=core_schema.plain_serializer_function_ser_schema(
-                serialize_to_plain_int,
-                return_schema=core_schema.int_schema(),
-            ),
-        )
+        return build_typed_int_pydantic_core_schema(cls)
 
     def __getnewargs__(self) -> tuple[int]:
-        return (int(self),)
+        return (int.__int__(self),)
 
     def __reduce__(
         self,
     ) -> tuple[type[BaseTypedInt], tuple[int]]:
-        return (self.__class__, (int(self),))
+        return (self.__class__, (int.__int__(self),))
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({int(self)!r})"
+        return f"{self.__class__.__name__}({int.__int__(self)!r})"

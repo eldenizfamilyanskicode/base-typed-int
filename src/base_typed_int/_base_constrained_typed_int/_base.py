@@ -1,0 +1,146 @@
+from __future__ import annotations
+
+from typing import Any, ClassVar, TypeVar
+
+import base_typed_int._base_constrained_typed_int._constraints as _constraints
+from base_typed_int._base_typed_int import BaseTypedInt
+from base_typed_int._exceptions import BaseTypedIntInvariantViolationError
+from base_typed_int._pydantic_support import build_typed_int_pydantic_core_schema
+
+BaseConstrainedTypedIntType = TypeVar(
+    "BaseConstrainedTypedIntType",
+    bound="BaseConstrainedTypedInt",
+)
+
+
+def _effective_constraint_configuration(
+    typed_int_type: type[BaseConstrainedTypedInt],
+) -> _constraints.ConstraintConfiguration:
+    configuration = _stored_constraint_configuration(typed_int_type)
+
+    for constrained_type in typed_int_type.__mro__:
+        if not issubclass(constrained_type, BaseConstrainedTypedInt):
+            continue
+
+        constrained_configuration = _stored_constraint_configuration(constrained_type)
+        _constraints.validate_constraint_declaration_unchanged(
+            class_name=constrained_type.__name__,
+            configuration=constrained_configuration,
+            current_gt=constrained_type.gt,
+            current_ge=constrained_type.ge,
+            current_lt=constrained_type.lt,
+            current_le=constrained_type.le,
+            current_multiple_of=constrained_type.multiple_of,
+        )
+
+    return configuration
+
+
+def _stored_constraint_configuration(
+    typed_int_type: type[BaseConstrainedTypedInt],
+) -> _constraints.ConstraintConfiguration:
+    configuration_value: object = vars(typed_int_type).get("_constraint_configuration")
+    if not isinstance(configuration_value, _constraints.ConstraintConfiguration):
+        raise BaseTypedIntInvariantViolationError(
+            f"{typed_int_type.__name__} internal constraint configuration is invalid."
+        )
+
+    return configuration_value
+
+
+class BaseConstrainedTypedInt(BaseTypedInt):
+    """
+    Callable domain-typed integer with declarative value constraints.
+
+    Subclasses may declare ``gt``, ``ge``, ``lt``, ``le``, and ``multiple_of``
+    as class attributes. Construction accepts only ``int`` except ``bool``,
+    validates every declared constraint, and returns the exact subclass.
+    Constraint declarations cannot be changed after class creation and may only
+    become stricter in subclasses.
+
+    The class performs no coercion and does not require Pydantic for direct use.
+    """
+
+    __slots__ = ()
+
+    gt: ClassVar[int | None] = None
+    ge: ClassVar[int | None] = None
+    lt: ClassVar[int | None] = None
+    le: ClassVar[int | None] = None
+    multiple_of: ClassVar[int | None] = None
+
+    _constraint_configuration: ClassVar[_constraints.ConstraintConfiguration] = (
+        _constraints.EMPTY_CONSTRAINT_CONFIGURATION
+    )
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+
+        parent_configurations = tuple(
+            _effective_constraint_configuration(parent_type)
+            for parent_type in cls.__mro__[1:]
+            if issubclass(parent_type, BaseConstrainedTypedInt)
+        )
+        configuration = _constraints.build_effective_constraint_configuration(
+            class_name=cls.__name__,
+            class_namespace=vars(cls),
+            parent_configurations=parent_configurations,
+        )
+
+        type.__setattr__(cls, "gt", configuration.gt)
+        type.__setattr__(cls, "ge", configuration.ge)
+        type.__setattr__(cls, "lt", configuration.lt)
+        type.__setattr__(cls, "le", configuration.le)
+        type.__setattr__(cls, "multiple_of", configuration.multiple_of)
+        type.__setattr__(
+            cls,
+            "_constraint_configuration",
+            configuration,
+        )
+
+    def __new__(
+        cls: type[BaseConstrainedTypedIntType],
+        value: int,
+    ) -> BaseConstrainedTypedIntType:
+        typed_value: BaseConstrainedTypedIntType = super().__new__(cls, value)
+        _constraints.validate_value_constraints(
+            class_name=cls.__name__,
+            value=int.__int__(typed_value),
+            configuration=_effective_constraint_configuration(cls),
+        )
+        return typed_value
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls,
+        source_type: Any,
+        handler: Any,
+    ) -> Any:
+        """Build a strict constrained integer schema returning the exact subtype."""
+        del source_type
+        del handler
+
+        configuration = _effective_constraint_configuration(cls)
+
+        def validate_configuration() -> None:
+            _effective_constraint_configuration(cls)
+
+        return build_typed_int_pydantic_core_schema(
+            cls,
+            gt=configuration.gt,
+            ge=configuration.ge,
+            lt=configuration.lt,
+            le=configuration.le,
+            multiple_of=configuration.multiple_of,
+            configuration_validator=validate_configuration,
+        )
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls,
+        core_schema: Any,
+        handler: Any,
+    ) -> Any:
+        """Validate sealed constraints before returning generated JSON Schema."""
+        _effective_constraint_configuration(cls)
+        return handler(core_schema)

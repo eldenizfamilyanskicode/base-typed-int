@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from base_typed_int import BaseTypedInt
+from base_typed_int import BaseConstrainedTypedInt, BaseTypedInt
 
 
 class UserAge(BaseTypedInt):
@@ -12,6 +12,18 @@ class AdminUserAge(UserAge):
 
 
 class RetryCount(BaseTypedInt):
+    pass
+
+
+class RequestExecutionLeaseTtlMilliseconds(BaseConstrainedTypedInt):
+    ge = 1_000
+    le = 3_600_000
+    multiple_of = 1_000
+
+
+class SpecializedRequestExecutionLeaseTtlMilliseconds(
+    RequestExecutionLeaseTtlMilliseconds
+):
     pass
 
 

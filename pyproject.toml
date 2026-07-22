@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "base-typed-int"
-version = "0.1.2"
-description = "Strict typed integer base class with exact runtime subtype preservation and optional Pydantic v2 support."
+version = "0.2.0"
+description = "Callable branded and constrained integer base classes with exact runtime subtype preservation."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
@@ -69,6 +69,7 @@ dev = [
 ]
 
 [project.urls]
+Changelog = "https://github.com/eldenizfamilyanskicode/base-typed-int/blob/main/CHANGELOG.md"
 Homepage = "https://github.com/eldenizfamilyanskicode/base-typed-int"
 Repository = "https://github.com/eldenizfamilyanskicode/base-typed-int"
 Issues = "https://github.com/eldenizfamilyanskicode/base-typed-int/issues"
